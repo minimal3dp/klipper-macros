@@ -1,5 +1,11 @@
 # klipper-macros
 
+**From Minimal3DP:**
+
+This collection of scripts are the work on [jschuh](https://github.com/jschuh/klipper-macros). As I have been using the scripts, I have started to make some small changes to suit my needs. This repo ([m3dp](https://github.com/minimal3dp/klipper-macros/))is where I will make my changes.
+
+**From jschuh:**
+
 This is a collection of macros for the
 [Klipper 3D printer firmware](https://github.com/Klipper3d/klipper). I
 originally created this repo just to have a consistent set of macros shared
@@ -9,7 +15,7 @@ people might as well.
 ## What can I do with these?
 
 Most of these macros just improve basic functionality (e.g.
-[selectable build sheets](#bed-surface)) and Klipper compatability
+[selectable build sheets](#bed-surface)) and Klipper compatibility
 with g-code targeting Marlin printers. However, there are also some nice extras:
 
 * **[Schedule commands at heights and layer changes](#layer-triggers)** -
@@ -50,7 +56,7 @@ To install the macros, first clone this repository inside of your
 `printer_data/config` directory with the following command.
 
 ```
-git clone https://github.com/jschuh/klipper-macros.git
+git clone https://github.com/minimal3dp/klipper-macros
 ```
 
 Then paste the below section into your `printer.cfg` to get started.
@@ -78,7 +84,7 @@ overridden by creating a corresponding variable with a new value in your
 # Any sheets in the below list will be available with a configurable offset.
 #variable_bed_surfaces: ['smooth_1','texture_1']
 # Length (in mm) of filament to load (bowden tubes will be longer).
-#variable_load_length: 90.0
+variable_load_length: 50.0
 # Hide the Octoprint LCD menu since I don't use it.
 #variable_menu_show_octoprint: False
 # Customize the filament menus (up to 10 entries).
@@ -87,7 +93,7 @@ overridden by creating a corresponding variable with a new value in your
 #  {'name' : 'PETG', 'extruder' : 230.0, 'bed' : 85.0},
 #  {'name' : 'ABS',  'extruder' : 245.0, 'bed' : 110.0, 'chamber' : 60}]
 # Length of filament (in millimeters) to purge at print start.
-#variable_start_purge_length: 30 # This value works for most setups.
+variable_start_purge_length: 30 # This value works for most setups.
 gcode: # This line is required by Klipper.
 # Any code you put here will run at klipper startup, after the initialization
 # for these macros. For example, you could uncomment the following line to
@@ -101,7 +107,7 @@ gcode: # This line is required by Klipper.
 # LCD menu support for features like bed surface selection and pause next layer.
 #[include klipper-macros/optional/lcd_menus.cfg]
 # Optimized bed leveling
-#[include klipper-macros/optional/bed_mesh.cfg]
+[include klipper-macros/optional/bed_mesh.cfg]
 
 # The sections below here are required for the macros to work.
 [idle_timeout]
@@ -113,10 +119,10 @@ gcode:
 [respond]
 
 [save_variables]
-filename: ~/printer_data/variables.cfg # UPDATE THIS FOR YOUR PATH!!!
+filename: /home/wilsonm/e3v2_data/config/variables.cfg # UPDATE THIS FOR YOUR PATH!!!
 
 [virtual_sdcard]
-path: ~/gcode_files
+path: /home/wilsonm/e3v2_data/gcodes
 
 [display_status]
 
@@ -135,14 +141,18 @@ automatically update directly from this repo.
 ```
 [update_manager klipper-macros]
 type: git_repo
-origin: https://github.com/jschuh/klipper-macros.git
-path: ~/printer_data/config/klipper-macros # UPDATE THIS FOR YOUR PATH!!!
-primary_branch: main
+origin: https://github.com/minimal3dp/klipper-macros
+path: /home/wilsonm/e3v2_data/config/m3dp-klipper-macros # UPDATE THIS FOR YOUR PATH!!!
+primary_branch: m3dp
 is_system_service: False
 managed_services: klipper
 ```
 
 ## Slicer Configuration
+
+From Minimal3DP:
+
+Using a Purge line - 
 
 ### PrusaSlicer / SuperSlicer
 
@@ -217,7 +227,7 @@ configuration steps listed below.
 ```
 M190 S0
 M109 S0
-PRINT_START EXTRUDER={material_print_temperature_layer_0} BED={material_bed_temperature_layer_0} NOZZLE_SIZE={machine_nozzle_size}
+PRINT_START EXTRUDER={material_print_temperature_layer_0} BED={material_bed_temperature_layer_0} MESH_MIN=%MINX%,%MINY% MESH_MAX=%MAXX%,%MAXY% NOZZLE_SIZE={machine_nozzle_size}
 
 ; This is the place to put slicer purge lines if you haven't set a non-zero
 ; variable_start_purge_length to have START_PRINT automatically purge (e.g. if
@@ -231,6 +241,22 @@ PRINT_END
 ```
 
 #### Post Processing Plugin
+
+**From Minimal3DP:**
+
+I found 2 methods that work for the post processing scripts. I believe that the method I am using is slightly easier than the method suggested by **jschuh**. Either should work.
+
+ *Minimal3DP Method:*
+
+To make the macro to work in Cura slicer, you need to install the [post process plugin by frankbags](https://gist.github.com/frankbags/c85d37d9faff7bce67b6d18ec4e716ff)
+        
+- In cura menu <code>Help</code> -> <code>Show configuration folder</code>.
+- Copy the python script from the above link (or [.\cura_scripts](https://github.com/minimal3dp/klipper-macros/tree/m3dp/cura_scripts)) in to Cura <code>scripts</code> folder. In windows, it should be something like: "C:\Users\m3dp\AppData\Roaming\cura\5.2\scripts"
+- Restart Cura
+- In cura menu <code>Extensions</code> -> <code>Post processing</code> -> <code>Modify G-Code</code> and select <code>Mesh Print Size</code>
+
+
+*jschuh Method:*
 
 Use the menu item for **Extensions → Post Processing → Modify G-Code** to
 open the **Post Processing Plugin** and add the following four scripts. *The
@@ -292,18 +318,18 @@ The following additional configuration options are available from
 > **Note:** The bed mesh optimizations are silently disabled for delta printers
   (because jinja2 lacks the necessary math support) and when the mesh parameters
   include a [`RELATIVE_REFERENCE_INDEX`](https://www.klipper3d.org/Bed_Mesh.html#the-relative-reference-index)
-  (which is cinompatible with dynamic mesh generation).
+  (which is incompatible with dynamic mesh generation).
 
 `BED_MESH_CHECK`
 
 Checks the `[bed_mesh]` config and warns if `mesh_min` or `mesh_max` could allow
-a move out of range during `BED_MESH_CALIBRATE`. This is run implictily at
+a move out of range during `BED_MESH_CALIBRATE`. This is run implicitly at
 Klipper startup and at the start of `BED_MESH_CALIBRATE`.
 
 ### Bed Surface
 
 Provides a set of macros for selecting different bed surfaces with
-correspdonding Z offset adjustments to compensate for their thickness. All
+corresponding Z offset adjustments to compensate for their thickness. All
 available surfaces must be listed in the `variable_bed_surfaces` array.
 Corresponding LCD menus for sheet selection and babystepping will be added to
 *Setup* and *Tune* if [`lcd_menus.cfg`](#lcd-menus) is included. Any Z offset
@@ -373,13 +399,13 @@ coordinate to the supplied XY coordinate.
 * `WIDTH` *(default: set via `SET_DRAW_PARAMS`)* - Extrusion width in mm.
 * `FEEDRATE` *(default: set via `SET_DRAW_PARAMS`)* - Drawing feedrate in mm/m.
 
-> **Note:** The Z axis position must be set prior to caling this macro. The
+> **Note:** The Z axis position must be set prior to calling this macro. The
 > `HEIGHT` parameter is used only to calculate the extrusion volume.
 
 #### SET_DRAW_PARAMS
 
 Sets the default parameters used by DRAW_LINE_TO. This is helpful in reducing
-`DRAW_LINE_TO` command line lengths (particluarly important when debugging in
+`DRAW_LINE_TO` command line lengths (particularly important when debugging in
 the console).
 
 * `HEIGHT` *(optional; 0.2mm at startup)* - Height (in mm) used to
@@ -456,13 +482,13 @@ Loads or unloads filament to the nozzle.
 
 Adds scaling parameters that can alter the behavior of the specified heater.
 Once set, these parameters apply to any temperature target on that heater until
-the scalaing parameters are cleared. A zero target temperature will turn the
+the scaling parameters are cleared. A zero target temperature will turn the
 heater off regardless of scaling parameters.
 
 #### `SET_HEATER_SCALING`
 
 Sets scaling parameters for the specified heater. If run without any arguments
-any currently scaled heaters and thier scaling parameters will be listed.
+any currently scaled heaters and their scaling parameters will be listed.
 
 * `HEATER` - The name of the heater to scale.
 * `BOOST` *(default: `0.0`)* - Added to a non-zero target temperature.
@@ -515,7 +541,7 @@ same and the function is identical, except that scaling values are applied.
   implement the heater scaling described above.
 
 > **Note:** Both `SET_HEATER_TEMPERATURE` and `TEMPERATURE_WAIT` are **not**
-> overriden and will not scale values. This means that heater scaling
+> overridden and will not scale values. This means that heater scaling
 > adjustments made in clients like Mainsail and Fluidd will not be scaled
 > (because that seemed like the clearest behavior). The
 > [custom LCD menus](#lcd-menus) will also replace the temperature controls
@@ -540,7 +566,7 @@ changes.
 
 #### `GCODE_AT_LAYER`
 
-Runs abritrary, user-provided g-code commands at the user-specified layer or
+Runs arbitrary, user-provided g-code commands at the user-specified layer or
 height. If no arguments are specified it will display all currently scheduled
 g-code commands along with their associated layer or height.
 
@@ -555,7 +581,7 @@ g-code commands along with their associated layer or height.
   change (i.e. immediately following completion of the previous layer). By
   default commands run after the layer change (i.e. immediately preceding the
   next layer). In most cases this distinction here doesn't matter, but it can
-  be important when dealing with toolchangers or other multi-material printing.
+  be important when dealing with tool changers or other multi-material printing.
 
 #### `CANCEL_ALL_LAYER_GCODE`
 
@@ -585,7 +611,7 @@ Cancels all g-code commands previously scheduled at any layer or height.
 > **Note:** If any triggers cause an exception the current print will
 > abort. The convenience macros above validate their arguments as much as is
 > possible to reduce the chances of an aborted print, but they cannot entirely
-> eliminate the risk of a macro doig something that aborts the print.
+> eliminate the risk of a macro doing something that aborts the print.
 
 ### Park
 
@@ -647,7 +673,7 @@ Cancels the print and performs all the same functions as `PRINT_END`.
 
 #### `PRINT_START`
 
-Sets up the printer prior to strating a print (called from the slicer's print
+Sets up the printer prior to starting a print (called from the slicer's print
 start g-code). A target `CHAMBER` temperature may be provided if a 
 `[heater_generic chamber]` section is present in the klipper config.
 If `MESH_MIN` and `MESH_MAX` are provided, then `BED_MESH_CALIBRATE` will probe
@@ -665,14 +691,14 @@ probes to the appropriate density (this can dramatically reduce probe times for 
 
 #### `PRINT_END`
 
-Parks the printhead, shuts down heaters, fans, etc, and performs general state
+Parks the printhead, shuts down heaters, fans, etc., and performs general state
 housekeeping at the end of the print (called from the slicer's print end
 g-code).
 
 ### Velocity
 
 These are some basic wrappers for Klipper's analogs to some of Marlin's velocity
-related commands, such as accelleration, jerk, and linear advance.
+related commands, such as acceleration, jerk, and linear advance.
 
 #### Marlin Compatibility
 
