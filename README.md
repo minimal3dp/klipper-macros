@@ -119,10 +119,10 @@ gcode:
 [respond]
 
 [save_variables]
-filename: /home/wilsonm/e3v2_data/config/variables.cfg # UPDATE THIS FOR YOUR PATH!!!
+filename: ~/e3v2_data/config/variables.cfg # UPDATE THIS FOR YOUR PATH!!!
 
 [virtual_sdcard]
-path: /home/wilsonm/e3v2_data/gcodes
+path: ~/e3v2_data/gcodes
 
 [display_status]
 
