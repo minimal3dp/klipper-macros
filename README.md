@@ -84,7 +84,7 @@ overridden by creating a corresponding variable with a new value in your
 # Any sheets in the below list will be available with a configurable offset.
 #variable_bed_surfaces: ['smooth_1','texture_1']
 # Length (in mm) of filament to load (bowden tubes will be longer).
-#variable_load_length: 90.0
+variable_load_length: 50.0
 # Hide the Octoprint LCD menu since I don't use it.
 #variable_menu_show_octoprint: False
 # Customize the filament menus (up to 10 entries).
@@ -93,7 +93,7 @@ overridden by creating a corresponding variable with a new value in your
 #  {'name' : 'PETG', 'extruder' : 230.0, 'bed' : 85.0},
 #  {'name' : 'ABS',  'extruder' : 245.0, 'bed' : 110.0, 'chamber' : 60}]
 # Length of filament (in millimeters) to purge at print start.
-#variable_start_purge_length: 30 # This value works for most setups.
+variable_start_purge_length: 30 # This value works for most setups.
 gcode: # This line is required by Klipper.
 # Any code you put here will run at klipper startup, after the initialization
 # for these macros. For example, you could uncomment the following line to
@@ -107,7 +107,7 @@ gcode: # This line is required by Klipper.
 # LCD menu support for features like bed surface selection and pause next layer.
 #[include klipper-macros/optional/lcd_menus.cfg]
 # Optimized bed leveling
-#[include klipper-macros/optional/bed_mesh.cfg]
+[include klipper-macros/optional/bed_mesh.cfg]
 
 # The sections below here are required for the macros to work.
 [idle_timeout]
@@ -119,10 +119,10 @@ gcode:
 [respond]
 
 [save_variables]
-filename: ~/printer_data/variables.cfg # UPDATE THIS FOR YOUR PATH!!!
+filename: /home/wilsonm/e3v2_data/config/variables.cfg # UPDATE THIS FOR YOUR PATH!!!
 
 [virtual_sdcard]
-path: ~/gcode_files
+path: /home/wilsonm/e3v2_data/gcodes
 
 [display_status]
 
