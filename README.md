@@ -1,6 +1,6 @@
 # klipper-macros
 
-**Version:** v1.0.2
+**Version:** v1.0.2-1
 
 **From Minimal3DP:**
 
