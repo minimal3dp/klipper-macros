@@ -1,5 +1,7 @@
 # klipper-macros
 
+**Version:** v1.0.2
+
 **From Minimal3DP:**
 
 This collection of scripts are the work on [jschuh](https://github.com/jschuh/klipper-macros). As I have been using the scripts, I have started to make some small changes to suit my needs. This branch ([m3dp](https://github.com/minimal3dp/klipper-macros/tree/m3dp))is where I will make my changes.
