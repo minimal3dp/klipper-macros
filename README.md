@@ -141,7 +141,7 @@ automatically update directly from this repo.
 ```
 [update_manager klipper-macros]
 type: git_repo
-origin: https://github.com/minimal3dp/klipper-macros
+origin: https://github.com/minimal3dp/klipper-macros.git
 path: ~/e3v2_data/config/klipper-macros # UPDATE THIS FOR YOUR PATH!!!
 primary_branch: m3dp
 is_system_service: False
