@@ -57,6 +57,83 @@ printers. However, there are also some nice extras:
 * There's probably other stuff I haven't used enough to test thoroughly, so use
   these macros at your own risk.
 
+# Troubleshooting
+
+* Double check that you followed the [installation instructions](#installation)
+  and are not seeing any console or log errors.
+* Ensure that you're running the most current version of stock Klipper, and not
+  a fork or otherwise altered or outdated copy.
+* Ensure you're using the most current version of these macros and haven't
+  made changes to any files in the `klipper-macros` directory.
+* Ensure that you've restarted Klipper after any updates or config changes.
+* Run `CHECK_KM_CONFIG` in the Klipper console and fix any errors it reports
+  to the console and/or logs (it won't output anything if no config errors
+  were detected).
+* Run `_INIT_SURFACES` in the Klipper console to validate that bed surfaces are
+  being initialized without any errors reported to the console and/or logs.
+* Verify your slicer settings and review that the gcode output is correct. Pay
+  particular attention the initialization portions of the gcode and the
+  parameters passed to PRINT_START.
+
+# Reporting Bugs
+
+If you've followed the troubleshooting steps and were unable to resolve the
+issue you can [report a bug via Github](
+https://github.com/jschuh/klipper-macros/issues/new/choose). I will probably
+respond within a few days (almost certainly within a week). I probably won't
+respond through other channels (e.g. Discord, Twitter), because I don't find
+them useful for handling bug reports.
+
+Some important things to remember when reporting bugs:
+
+* **Paste the full text of the command that triggered the error, along with any
+  error messages printed to the console** (and relevant sections of the klipper
+  logs if appropriate).
+* **Attach your config to the bug report.** There's generally no way to diagnose
+  anything without the configs.
+* **Verify that your issue reproduces on the current, stock installation of
+  Klipper and klipper-macros.** Non-stock configurations and outdated versions
+  make diagnosis nearly impossible.
+* Please don't treat bug reports as a substitute for following the installation
+  and troubleshooting instructions.
+* If you file a feature request I will most likely close it (unless it's
+  something I was already planning on adding). Sorry, but I wrote these macros
+  to meet my own needs, so that's what I work on.
+
+> **Note:** Reports that do not follow the above guidelines _**will likely be
+> closed without any other action taken.**_
+
+# Contributing
+
+I'm happy to accept bugfix PRs. I'm also potentially open to accepting new
+features or additions. However, I may decline the PR if it's something I'm not
+interested in or just looks like it would be a hassle for me to maintain.
+
+## Formatting
+
+There's no standard style for Klipper macros, so please just try to follow the
+style in the files. That stated, here are a few rules to remember:
+
+ * Wrap at 80 characters if at all possible
+ * Indent 2 spaces, and in line with the logical block when wrapping (no tabs)
+ * Prefix internal macros with `_` or `_km_`
+ * Prefix any sort of global state with `_KM_` (e.g. `_KM_SAVE_GCODE_STATE`)
+
+## Commit Messages
+
+These are the rules for commit messages, but you can also just look at the
+commit log and follow the observed pattern:
+
+ * Use the 50/72 rule for commit messages: No more than 50 characters in the
+   title and break lines in the description at 72 characters.
+ * Begin the title with the module name (usually the main file being modified,
+   minus any extension) followed by a colon.
+ * Title-only commit messages are fine for simple commits, but be sure to
+   include a blank line after the title.
+ * Squash multiple commits if what you're working on makes more sense as a
+   single logical commit. _This might require you to do a force push on an open
+   PR._
+
 # Installation
 
 To install the macros, first clone this repository inside of your
@@ -74,7 +151,9 @@ macros in the future.
 You may need to customize some settings for your own config. All configurable
 settings are in [globals.cfg](globals.cfg#L5), and can be overridden by creating
 a corresponding variable with a new value in your `[gcode_macro _km_options]`
-section.
+section. _**Do not directly modify the variable declarations in globals.cfg.**_
+The macro initialization assumes certain default values, and direct
+modifications are likely to break things in very unexpected ways.
 
 > **Note:**  The paths in this README follow [Moonraker's data folder structure.
 > ](https://moonraker.readthedocs.io/en/latest/installation/#data-folder-structure)
@@ -336,6 +415,9 @@ restarts before the klipper-macros section disappears from the UI.
 All features are configured by setting `variable_` values in the 
 `[gcode_macro _km_options]` section. All available variables and their purpose
 are listed in [globals.cfg](globals.cfg#L5).
+
+> **Note:** `PRINT_START` specific customizations are [covered in more detail
+  below](#print-start-and-end).
 
 ### Bed Mesh Improvements
 
@@ -738,6 +820,106 @@ smaller prints).
 * `NOZZLE_SIZE` *(default: nozzle_diameter)* - Nozzle diameter of the primary
    extruder.
 * `LAYERS` *(optional)* - Total number of layers in the print.
+
+These are the customization options you can add to your
+`[gcode_macro _km_options]` section to alter `PRINT_START` behavior:
+
+* `variable_start_bed_heat_delay` *(default: 2000)* - This delay (in
+  microseconds) is used to allow the bed to stabilize after it reaches it's
+  target temperature. This is present to account for the fact that the
+  temperature sensors for most beds are located close to the heating element,
+  and thus will register as being at the target temperature before the surface
+  of the bed is. For larger or thicker beds you may want to increase this value.
+  For smaller or thinner beds you may want to disable this entirely by setting
+  it to `0`.
+
+* `variable_start_bed_heat_overshoot` *(default: 2.0)* - This value (in degrees
+  Celsius) is added to the supplied target bed temperature and use as the
+  initial target temperature when preheating the bed. After the bed preheats to
+  this target it there is a brief delay before the final target is set. This
+  allows the bed to stabilize at it's final temperature more quickly. For
+  smaller or thinner beds you may want to reduce this value or disable it
+  entirely by setting it to `0.0`.
+
+* `variable_start_end_park_y` *(default: `print_max` Y coordinate)* - The final
+  Y position of the toolhead in the `PRINT_END` macro, to ensure that the
+  toolhead is out of the way when the bed is presented for print removal.
+
+* `variable_start_extruder_preheat_scale` *(default: 0.5)* - This value is
+  multiplied by the target extruder temperature and the result is used as the
+  preheat value for the extruder while the bed is heating. This is done to
+  reduce oozing from the extruder while the bed is heating or being probed. Set
+  to `1.0` to preheat the extruder to the full target temperature, or to `0.0`
+  to not preheat the extruder at all until the bed reaches temperature.
+
+* `variable_start_extruder_set_target_before_level` *(default: True)* - If
+  `True` the extruder is set to its target temperature before bed leveling
+  begins. If `False` the target is set after bed level completes. Setting `True`
+  warms up the extruder faster and `False` prevents oozing during bed level.
+  The extruder preheat is applied independent of this setting.
+
+* `variable_start_gcode_before_print` *(default: None)* - Optional user-supplied
+  gcode run after any leveling operations are complete and the bed, extruder,
+  and chamber are all stabilized at their target temperatures. Immediately after
+  this gcode executes the purge line will be printed (if specified) and then the
+  file from the virtual sdcard will begin printing. This is a useful to add any
+  probe docking commands, loading from a multi-material unit, or other
+  operations that must occur before any filament is extruded.
+
+* `variable_start_level_bed_at_temp` *(default: True if `bed_mesh` configured
+  )* - If true the `PRINT_START` macro will run [`BED_MESH_CALIBRATE_FAST`](
+  #bed-mesh-improvements) after the bed has stabilized at its target
+  temperature.
+
+* `variable_start_home_z_at_temp` *(default: True if `probe:z_virtual_endstop`
+  configured)* - Rehomes the Z axis once the bed reaches its target temperature,
+  to account for movement during heating.
+
+* `variable_start_clear_adjustments_at_end` *(default: True)* - Clears temporary
+  adjustments after the print completes or is cancelled (e.g. feedrate,
+  flow percentage).
+
+* `variable_start_purge_clearance` *(default: 5.0)* Distance (in millimeters)
+  between the purge lines and the print area (if a `start_purge_length` is
+  provided).
+
+* `variable_start_purge_length` *(default: 0.0)* - Length of filament (in
+  millimeters) to purge after the extruder finishes heating and prior to
+  starting the print. For most setups `30` is a good starting point.
+
+* `variable_start_purge_prime_length` *(default: 10.0)* Length of filament (in
+  millimeters) to prime the extruder before drawing the purge lines.
+
+* `variable_start_quad_gantry_level_at_temp` *(default: True if
+  `quad_gantry_level` configured)* - If true the `PRINT_START` macro will run
+  `QUAD_GANTRY_LEVEL` after the bed has stabilized at its target temperature.
+
+* `variable_start_z_tilt_adjust_at_temp`  *(default: True if `z_tilt`
+  configured)* - If true the `PRINT_START` macro will run `Z_TILT_ADJUST` after
+  the bed has stabilized at its target temperature.
+
+You can further customize the `PRINT_START` macro by declaring your own override
+wrapper. This can be useful for things like loading mesh/skew profiles, or any
+other setup that may need to be performed prior to printing.
+
+Here's a skeleton of a `PRINT_START` override wrapper:
+
+```
+[gcode_macro PRINT_START]
+rename_existing: KM_PRINT_START
+gcode:
+
+  # Put macro code here to run before PRINT_START.
+
+  KM_PRINT_START {rawparams}
+
+  # Put macro code here to run after PRINT_START but before the print gcode
+```
+
+> **Note:** You can use this same pattern to wrap other macros in order to
+  account for customizations specific to your printer. E.g. If you have a
+  dockable probe you may choose to wrap `BED_MESH_CALIBRATE` with the
+  appropriate docking/undocking commands.
 
 #### `PRINT_END`
 
